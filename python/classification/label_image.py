@@ -39,7 +39,7 @@ def main():
         "--label",
         help="Specify an input shape for inference.",
     )
-    parser.add_argument("--count", help="Repeat count.", default=150, type=int)
+    parser.add_argument("--count", help="Repeat count.", default=1, type=int)
     parser.add_argument(
         "--display_every",
         type=int,
@@ -95,23 +95,26 @@ def main():
     for i in top_k:
         print("  class={} ; probability={:08.6f}".format(labels[i], preds[i]))
 
-    print("\nBenchmark result:")
-    results = {}
-    iter_times = np.array(elapsed_list)
-    results["total_time"] = np.sum(iter_times)
-    iter_times = iter_times[args.num_warmup_iterations :]
-    results["images_per_sec"] = np.mean(1 / iter_times)
-    results["99th_percentile"] = np.percentile(iter_times, q=99, method="lower") * 1000
-    results["latency_mean"] = np.mean(iter_times) * 1000
-    results["latency_median"] = np.median(iter_times) * 1000
-    results["latency_min"] = np.min(iter_times) * 1000
+    if args.count > 1:
+        print("\nBenchmark result:")
+        results = {}
+        iter_times = np.array(elapsed_list)
+        results["total_time"] = np.sum(iter_times)
+        iter_times = iter_times[args.num_warmup_iterations :]
+        results["images_per_sec"] = np.mean(1 / iter_times)
+        results["99th_percentile"] = (
+            np.percentile(iter_times, q=99, method="lower") * 1000
+        )
+        results["latency_mean"] = np.mean(iter_times) * 1000
+        results["latency_median"] = np.median(iter_times) * 1000
+        results["latency_min"] = np.min(iter_times) * 1000
 
-    print("  images/sec: %d" % results["images_per_sec"])
-    print("  99th_percentile(ms): %.2f" % results["99th_percentile"])
-    print("  total_time(s): %.1f" % results["total_time"])
-    print("  latency_mean(ms): %.2f" % results["latency_mean"])
-    print("  latency_median(ms): %.2f" % results["latency_median"])
-    print("  latency_min(ms): %.2f" % results["latency_min"])
+        print("  images/sec: %d" % results["images_per_sec"])
+        print("  99th_percentile(ms): %.2f" % results["99th_percentile"])
+        print("  total_time(s): %.1f" % results["total_time"])
+        print("  latency_mean(ms): %.2f" % results["latency_mean"])
+        print("  latency_median(ms): %.2f" % results["latency_median"])
+        print("  latency_min(ms): %.2f" % results["latency_min"])
 
 
 if __name__ == "__main__":
